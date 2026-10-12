@@ -4,15 +4,10 @@ import XMLTag.TagXML;
 
 import java.util.Stack;
 
-import static javax.swing.text.html.HTML.Tag.P;
-
-// TODO:ADD METHOD TO ITERATE THE DOCUMENT NODE
-// TODO:ADD ITERATOR
-public class XMLReader {
+public class XMLReader  {
     private TagXML documentRoot = null;
-    private TagXML itCurrent = null;
 
-    public XMLReader(XMLStreamer fileStream){
+    public XMLReader(XMLStream fileStream){
         // Use a inner stack to find last entered scope
         Stack<TagXML> nesting = new Stack<>();
 
@@ -24,28 +19,20 @@ public class XMLReader {
             if (!tag.isOpeningTag()) {
                 TagXML child = nesting.pop();
                 if (!nesting.empty()) {
-                    child.attach(tag);
+                    child.attachClosingTag(tag);
                     nesting.peek().addChildren(child);
                 } else {
+                    child.attachClosingTag(tag);
                     documentRoot = child;
                 }
             } else {
                 nesting.push(tag);
             }
         }
-
-        // current node at root
-        itCurrent = documentRoot;
     }
 
     public TagXML getDocumentRootNode(){
         return this.documentRoot;
-    }
-
-    public TagXML next() {
-        //TagXML node = this.itCurrent.getChildNode().getFirst();
-        //this.itCurrent.getChildNode().removeFirst();
-        return this.itCurrent;
     }
 
 }

@@ -16,7 +16,7 @@ public class TagXML {
         this.startIndex = startIndex;
         this.endIndex = endIndex + 1;
         this.charIndexContent = content;
-        extractTagMetaData();
+        extractTagProperties();
     }
 
     private String extractFromContent(int start, int end){
@@ -26,8 +26,7 @@ public class TagXML {
         }
         return pink.toString();
     }
-
-    private void extractTagMetaData(){
+    private void extractTagProperties(){
         String[] ctx = extractFromContent(this.startIndex,this.endIndex).split(" ");
 
         // tag name
@@ -39,62 +38,61 @@ public class TagXML {
 
     }
 
-    public String getContent() {
-        if(this.closeTag == null)
-            return "";
-
-        return this.extractFromContent(this.endIndex, this.closeTag.startIndex);
-    }
-
-    public String getTag(){
-        return this.tagName;
-    }
-
-    public ArrayList<TagAttribute> getAttribute(){
-        return this.tagAttribute;
-    }
-
-    public boolean hasAttribute(){
-        return !this.tagAttribute.isEmpty();
-    }
-
-    public boolean isOpeningTag(){
-        return this.tagName.charAt(1) != 47;
-    }
-
-    public void attach(TagXML closingTag) {
+    public void attachClosingTag(TagXML closingTag) {
         this.closeTag = closingTag;
+    }
+    public void addChildren(TagXML child) {
+        this.nodes.add(child);
     }
 
     public boolean hasChildren() {
         return !this.nodes.isEmpty();
     }
-
-    public void addChildren(TagXML child) {
-        this.nodes.add(child);
+    public boolean hasCloseTag(){
+        if(this.closeTag == null)
+            return false;
+        return true;
+    }
+    public boolean hasAttribute(){
+        return !this.tagAttribute.isEmpty();
+    }
+    public boolean isOpeningTag(){
+        return this.tagName.charAt(1) != 47;
     }
 
+    public String getTag(){
+        return this.tagName;
+    }
+    public ArrayList<TagAttribute> getAttribute(){
+        return this.tagAttribute;
+    }
     public ArrayList<TagXML> getChildNode() {
         return this.nodes;
     }
+    public TagXML getCloseTag() { return this.closeTag; }
 
-    //TODO: PRETTY PRINT IT
+    private String getContent() {
+        if(!this.hasCloseTag())
+            return "";
+
+        return this.extractFromContent(this.endIndex, this.closeTag.startIndex);
+    }
+
+
     @Override
     public String toString() {
         if(this.isOpeningTag()) {
             StringBuilder strTag = new StringBuilder();
 
-            strTag.append(this.tagName).append(" ");
+            strTag.append(this.tagName);
 
-            if(this.hasAttribute())
-                strTag.append(this.tagAttribute).append(" ");
+            this.tagAttribute.forEach(n-> strTag.append(" " + n.toString() + " "));
+            if(this.hasAttribute()) strTag.append(">");
 
-            strTag.append("{").append(this.nodes.size()).append("}\n");
+            this.nodes.forEach(n -> strTag.append("\n" + n.toString()));
+            if(!this.hasChildren()) strTag.append(this.getContent());
 
-            if(this.hasChildren())
-                this.nodes.forEach(n -> strTag.append("\t").append(n.toString()).append("\n"));
-            else
-                strTag.append(this.getContent()).append("\n");
+            if(this.hasCloseTag()) strTag.append(this.closeTag);
 
             return strTag.toString();
         } else {
